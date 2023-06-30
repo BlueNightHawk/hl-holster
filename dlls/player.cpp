@@ -112,6 +112,10 @@ TYPEDESCRIPTION CBasePlayer::m_playerSaveData[] =
 		DEFINE_FIELD(CBasePlayer, m_iFOV, FIELD_INTEGER),
 
 		DEFINE_FIELD(CBasePlayer, m_SndRoomtype, FIELD_INTEGER),
+
+		// bluenighthawk : HOLSTER
+		DEFINE_FIELD(CBasePlayer, m_pNextItem, FIELD_CLASSPTR),
+		
 		// Don't save these. Let the game recalculate the closest env_sound, and continue to use the last room type like it always has.
 		//DEFINE_FIELD(CBasePlayer, m_SndLast, FIELD_EHANDLE),
 		//DEFINE_FIELD(CBasePlayer, m_flSndRange, FIELD_FLOAT),
@@ -2999,9 +3003,12 @@ bool CBasePlayer::Restore(CRestore& restore)
 }
 
 
-
+// bluenighthawk : HOLSTER START
 void CBasePlayer::SelectNextItem(int iItem)
 {
+	if (m_pNextItem)
+		return;
+
 	CBasePlayerItem* pItem;
 
 	pItem = m_rgpPlayerItems[iItem];
@@ -3032,23 +3039,18 @@ void CBasePlayer::SelectNextItem(int iItem)
 	ResetAutoaim();
 
 	// FIX, this needs to queue them up and delay
+	m_pActiveItem->m_ForceSendAnimations = true;
 	if (m_pActiveItem)
-	{
 		m_pActiveItem->Holster();
-	}
+	m_pActiveItem->m_ForceSendAnimations = false;
 
-	m_pActiveItem = pItem;
-
-	if (m_pActiveItem)
-	{
-		m_pActiveItem->Deploy();
-		m_pActiveItem->UpdateItemInfo();
-	}
+	m_pNextItem = pItem;
+	m_pActiveItem = nullptr;
 }
 
 void CBasePlayer::SelectItem(const char* pstr)
 {
-	if (!pstr)
+	if (!pstr || m_pNextItem)
 		return;
 
 	CBasePlayerItem* pItem = NULL;
@@ -3081,20 +3083,17 @@ void CBasePlayer::SelectItem(const char* pstr)
 	ResetAutoaim();
 
 	// FIX, this needs to queue them up and delay
+	m_pActiveItem->m_ForceSendAnimations = true;
 	if (m_pActiveItem)
 		m_pActiveItem->Holster();
+	m_pActiveItem->m_ForceSendAnimations = false;
 
 	m_pLastItem = m_pActiveItem;
-	m_pActiveItem = pItem;
-
-	if (m_pActiveItem)
-	{
-		m_pActiveItem->m_ForceSendAnimations = true;
-		m_pActiveItem->Deploy();
-		m_pActiveItem->m_ForceSendAnimations = false;
-		m_pActiveItem->UpdateItemInfo();
-	}
+	m_pNextItem = pItem;
+	m_pActiveItem = nullptr;
 }
+
+// bluenighthawk : HOLSTER END
 
 //==============================================
 // HasWeapons - do I have any weapons at all?
@@ -3806,6 +3805,19 @@ void CBasePlayer::ItemPreFrame()
 #endif
 	{
 		return;
+	}
+
+	if (m_pNextItem)
+	{
+		m_pActiveItem = m_pNextItem;
+		if (m_pActiveItem)
+		{
+			m_pActiveItem->m_ForceSendAnimations = true;
+			m_pActiveItem->Deploy();
+			m_pActiveItem->m_ForceSendAnimations = false;
+			m_pActiveItem->UpdateItemInfo();
+		}
+		m_pNextItem = nullptr;
 	}
 
 	if (!m_pActiveItem)

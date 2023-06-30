@@ -184,6 +184,9 @@ public:
 	CBasePlayerItem* m_pClientActiveItem; // client version of the active item
 	CBasePlayerItem* m_pLastItem;
 
+	// bluenighthawk : HOLSTER
+	CBasePlayerItem* m_pNextItem;
+
 	std::uint64_t m_WeaponBits;
 
 	//Not saved, used to update client.
