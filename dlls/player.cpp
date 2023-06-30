@@ -3006,8 +3006,11 @@ bool CBasePlayer::Restore(CRestore& restore)
 // bluenighthawk : HOLSTER START
 void CBasePlayer::SelectNextItem(int iItem)
 {
-	if (m_pNextItem)
-		return;
+	// Uncomment this if block if you dont want queued weapons to be changed mid-holster
+	/*
+		if (m_pNextItem)
+			return;
+	*/
 
 	CBasePlayerItem* pItem;
 
@@ -3038,19 +3041,26 @@ void CBasePlayer::SelectNextItem(int iItem)
 
 	ResetAutoaim();
 
-	// FIX, this needs to queue them up and delay
-	m_pActiveItem->m_ForceSendAnimations = true;
 	if (m_pActiveItem)
+	{
+		m_pActiveItem->m_ForceSendAnimations = true;
 		m_pActiveItem->Holster();
-	m_pActiveItem->m_ForceSendAnimations = false;
+		m_pActiveItem->m_ForceSendAnimations = false;
+	}
 
+	m_pLastItem = m_pActiveItem;
 	m_pNextItem = pItem;
 	m_pActiveItem = nullptr;
 }
 
 void CBasePlayer::SelectItem(const char* pstr)
 {
-	if (!pstr || m_pNextItem)
+	// Uncomment this if block if you dont want queued weapons to be changed mid-holster
+	/*
+		if (m_pNextItem)
+			return;
+	*/
+	if (!pstr)
 		return;
 
 	CBasePlayerItem* pItem = NULL;
@@ -3082,11 +3092,12 @@ void CBasePlayer::SelectItem(const char* pstr)
 
 	ResetAutoaim();
 
-	// FIX, this needs to queue them up and delay
-	m_pActiveItem->m_ForceSendAnimations = true;
 	if (m_pActiveItem)
+	{
+		m_pActiveItem->m_ForceSendAnimations = true;
 		m_pActiveItem->Holster();
-	m_pActiveItem->m_ForceSendAnimations = false;
+		m_pActiveItem->m_ForceSendAnimations = false;
+	}
 
 	m_pLastItem = m_pActiveItem;
 	m_pNextItem = pItem;
