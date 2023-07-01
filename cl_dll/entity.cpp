@@ -327,6 +327,9 @@ void DLLEXPORT HUD_StudioEvent(const struct mstudioevent_s* event, const struct 
 
 	bool iMuzzleFlash = true;
 
+	// disable muzzleflash for suppressed glock
+	if (gEngfuncs.GetViewModel() == entity && gHUD.m_Ammo.m_pWeapon && gHUD.m_Ammo.m_pWeapon->iId == WEAPON_GLOCK && entity->curstate.body != 0)
+		iMuzzleFlash = false;
 
 	switch (event->event)
 	{

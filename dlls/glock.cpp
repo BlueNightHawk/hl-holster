@@ -19,6 +19,7 @@
 #include "monsters.h"
 #include "weapons.h"
 #include "player.h"
+#include "UserMessages.h"
 
 LINK_ENTITY_TO_CLASS(weapon_glock, CGlock);
 LINK_ENTITY_TO_CLASS(weapon_9mmhandgun, CGlock);
@@ -80,11 +81,34 @@ bool CGlock::Deploy()
 
 void CGlock::SecondaryAttack()
 {
-	GlockFire(0.1, 0.2, false);
+	if (pev->body == 0)
+	{
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0f;
+
+		m_ForceSendAnimations = true;
+		SendWeaponAnim(GLOCK_ADD_SILENCER);
+		m_ForceSendAnimations = false;
+	}
+	else
+	{
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0f;
+	
+		m_ForceSendAnimations = true;
+		SendWeaponAnim(GLOCK_HOLSTER);
+		m_ForceSendAnimations = false;
+	}
+	m_bQueueSilencer = true;
 }
 
 void CGlock::PrimaryAttack()
 {
+	// Hold for rapid fire
+	if ((m_pPlayer->m_afButtonPressed & IN_ATTACK) == 0)
+	{
+		GlockFire(0.1, 0.2, false);
+		return;
+	}
+
 	GlockFire(0.01, 0.3, true);
 }
 
@@ -144,7 +168,7 @@ void CGlock::GlockFire(float flSpread, float flCycleTime, bool fUseAutoAim)
 	Vector vecDir;
 	vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, Vector(flSpread, flSpread, flSpread), 8192, BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed);
 
-	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), fUseAutoAim ? m_usFireGlock1 : m_usFireGlock2, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, (m_iClip == 0) ? 1 : 0, 0);
+	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), fUseAutoAim ? m_usFireGlock1 : m_usFireGlock2, 0.0, g_vecZero, g_vecZero, vecDir.x, vecDir.y, 0, 0, (m_iClip == 0) ? 1 : 0, (pev->body > 0));
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCycleTime);
 
@@ -175,9 +199,44 @@ void CGlock::Reload()
 }
 
 
+void CGlock::Holster()
+{
+	m_fInReload = false; // cancel any reload in progress.
+	m_bQueueSilencer = false;
+
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0f;
+
+	SendWeaponAnim(GLOCK_HOLSTER);
+}
+
 
 void CGlock::WeaponIdle()
 {
+	if (m_bQueueSilencer)
+	{
+		if (pev->body == 0)
+		{
+			pev->body = 1;
+			m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 2.0f;
+		}
+		else
+		{
+			pev->body = 0;
+			SendWeaponAnim(GLOCK_DRAW);
+			m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5f;
+		}
+		m_flTimeWeaponIdle = m_pPlayer->m_flNextAttack + 1.0f;
+		m_bQueueSilencer = false;
+
+#ifndef CLIENT_DLL
+		MESSAGE_BEGIN(MSG_ONE, gmsgSetBodySkin, nullptr, m_pPlayer->edict());
+			WRITE_SHORT(pev->body);
+			WRITE_SHORT(pev->skin);
+		MESSAGE_END();
+#endif
+		return;
+	}
+
 	ResetEmptySound();
 
 	m_pPlayer->GetAutoaimVector(AUTOAIM_10DEGREES);

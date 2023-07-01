@@ -263,6 +263,14 @@ float UTIL_SharedRandomFloat(unsigned int seed, float low, float high)
 	}
 }
 
+int GetCurrentWeaponId()
+{
+	if (gHUD.m_Ammo.m_pWeapon == nullptr)
+		return -1;
+
+	return gHUD.m_Ammo.m_pWeapon->iId;
+}
+
 /*
 ======================
 stub_*

@@ -127,10 +127,11 @@ public:
 	void UserCmd_NextWeapon();
 	void UserCmd_PrevWeapon();
 
+	WEAPON* m_pWeapon;
+
 private:
 	float m_fFade;
 	RGBA m_rgba;
-	WEAPON* m_pWeapon;
 	int m_HUD_bucket0;
 	int m_HUD_selection;
 };
@@ -591,6 +592,7 @@ public:
 	bool MsgFunc_SetFOV(const char* pszName, int iSize, void* pbuf);
 	bool MsgFunc_Concuss(const char* pszName, int iSize, void* pbuf);
 	bool MsgFunc_Weapons(const char* pszName, int iSize, void* pbuf);
+	bool MsgFunc_SetBodySkin(const char* pszName, int iSize, void* pbuf);
 
 	// Screen information
 	SCREENINFO m_scrinfo;

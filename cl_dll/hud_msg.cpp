@@ -28,7 +28,6 @@ extern BEAM* pBeam;
 extern BEAM* pBeam2;
 extern TEMPENTITY* pFlare; // Vit_amiN
 
-
 /// USER-DEFINED SERVER MESSAGE HANDLERS
 
 bool CHud::MsgFunc_ResetHUD(const char* pszName, int iSize, void* pbuf)
@@ -146,6 +145,18 @@ bool CHud::MsgFunc_Weapons(const char* pszName, int iSize, void* pbuf)
 	const std::uint64_t upperBits = READ_LONG();
 
 	m_iWeaponBits = (lowerBits & 0XFFFFFFFF) | ((upperBits & 0XFFFFFFFF) << 32ULL);
+
+	return true;
+}
+
+bool CHud::MsgFunc_SetBodySkin(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+
+	auto p = &gEngfuncs.GetViewModel()->curstate;
+
+	p->body = READ_SHORT();
+	p->skin = READ_SHORT();
 
 	return true;
 }

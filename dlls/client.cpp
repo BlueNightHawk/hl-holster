@@ -1766,6 +1766,11 @@ void UpdateClientData(const edict_t* ent, int sendweapons, struct clientdata_s* 
 						cd->vuser2.y = static_cast<vec_t>(((CRpg*)pl->m_pActiveItem)->m_fSpotActive);
 						cd->vuser2.z = ((CRpg*)pl->m_pActiveItem)->m_cActiveRockets;
 					}
+					else if (pl->m_pActiveItem->m_iId == WEAPON_GLOCK)
+					{
+						cd->vuser2.y = static_cast<vec_t>(((CGlock*)pl->m_pActiveItem)->m_bQueueSilencer);
+						cd->vuser2.z = static_cast<vec_t>(((CGlock*)pl->m_pActiveItem)->pev->body);
+					}
 				}
 			}
 		}

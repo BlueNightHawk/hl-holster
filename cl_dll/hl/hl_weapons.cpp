@@ -217,6 +217,10 @@ void CBasePlayerWeapon::SendWeaponAnim(int iAnim, int body)
 {
 	m_pPlayer->pev->weaponanim = iAnim;
 
+	// client side should do this too
+	if (body == 0)
+		body = pev->body;
+
 	HUD_SendWeaponAnim(iAnim, body, false);
 }
 
@@ -697,6 +701,11 @@ void HUD_WeaponsPostThink(local_state_s* from, local_state_s* to, usercmd_t* cmd
 	{
 		((CRpg*)player.m_pActiveItem)->m_fSpotActive = static_cast<bool>(from->client.vuser2[1]);
 		((CRpg*)player.m_pActiveItem)->m_cActiveRockets = (int)from->client.vuser2[2];
+	}
+	else if (player.m_pActiveItem->m_iId == WEAPON_GLOCK)
+	{
+		((CGlock*)player.m_pActiveItem)->m_bQueueSilencer = static_cast<bool>(from->client.vuser2[1]);
+		((CGlock*)player.m_pActiveItem)->pev->body = (int)from->client.vuser2[2];
 	}
 
 	// Don't go firing anything if we have died or are spectating

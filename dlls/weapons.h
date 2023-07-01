@@ -503,6 +503,7 @@ public:
 	bool Deploy() override;
 	void Reload() override;
 	void WeaponIdle() override;
+	void Holster() override;
 
 	bool UseDecrement() override
 	{
@@ -512,6 +513,8 @@ public:
 		return false;
 #endif
 	}
+
+	bool m_bQueueSilencer = false;
 
 private:
 	int m_iShell;
